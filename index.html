@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verificador de Billetes</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: system-ui, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: #f5f5f5;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 1.4rem;
+      margin-bottom: 1.5rem;
+      color: #333;
+    }
+
+    .bills {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .bill-card {
+      flex: 1;
+      padding: 0.8rem 0.5rem;
+      border: 2px solid #ccc;
+      border-radius: 8px;
+      background: #fff;
+      cursor: pointer;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #555;
+      transition: all 0.15s;
+    }
+
+    .bill-card:hover {
+      border-color: #4a90d9;
+      color: #4a90d9;
+    }
+
+    .bill-card.selected {
+      border-color: #4a90d9;
+      background: #4a90d9;
+      color: #fff;
+    }
+
+    .inputs {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+
+    #serial {
+      flex: 1;
+      width: 200px;
+    }
+
+    #B {
+      width: 3.5rem;
+      flex-shrink: 0;
+    }
+
+    input {
+      font-size: 1.8rem;
+      text-align: center;
+      letter-spacing: 0.15em;
+      padding: 0.5rem;
+      border: 2px solid #ccc;
+      border-radius: 8px;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: #4a90d9;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 2rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 8px;
+      background: #4a90d9;
+      color: #fff;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #3a7bc8;
+    }
+
+    #result {
+      margin-top: 1.5rem;
+      padding: 1rem;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      display: none;
+    }
+
+    #result.safe {
+      background: #e6f9e6;
+      color: #1a7a1a;
+    }
+
+    #result.danger {
+      background: #fce4e4;
+      color: #c0392b;
+    }
+
+    #history {
+      margin-top: 1.5rem;
+      text-align: left;
+      font-size: 0.9rem;
+    }
+
+    #history .entry {
+      padding: 0.4rem 0.6rem;
+      border-radius: 6px;
+      margin-bottom: 0.4rem;
+      font-weight: 600;
+    }
+
+    #history .entry.safe {
+      background: #e6f9e6;
+      color: #1a7a1a;
+    }
+
+    #history .entry.danger {
+      background: #fce4e4;
+      color: #c0392b;
+      cursor: pointer;
+    }
+
+    #ranges {
+      margin-top: 1.5rem;
+      text-align: left;
+    }
+
+    #ranges summary {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #333;
+      cursor: pointer;
+      margin-bottom: 0.5rem;
+    }
+
+    #ranges table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+    }
+
+    #ranges th {
+      background: #f0f0f0;
+      padding: 0.4rem 0.6rem;
+      text-align: left;
+      font-weight: 600;
+      color: #555;
+    }
+
+    #ranges td {
+      padding: 0.3rem 0.6rem;
+      border-bottom: 1px solid #eee;
+      font-family: monospace;
+    }
+
+    #ranges tr.highlight td {
+      background: #fce4e4;
+      font-weight: 700;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="card">
+    <h1>Verificador de Billetes</h1>
+    <div class="bills">
+      <div class="bill-card selected" data-bill="10" onclick="selectBill(this)">Bs 10</div>
+      <div class="bill-card" data-bill="20" onclick="selectBill(this)">Bs 20</div>
+      <div class="bill-card" data-bill="50" onclick="selectBill(this)">Bs 50</div>
+    </div>
+    <div class="inputs">
+      <input id="serial" type="text" inputmode="numeric" maxlength="9" placeholder="000000000" autocomplete="off">
+      <input id="B" type="text" placeholder="B" autocomplete="off" disabled>
+    </div>
+    <br>
+    <button onclick="check()">Verificar</button>
+    <div id="result"></div>
+    <div id="history"></div>
+    <div id="ranges"></div>
+  </div>
+
+  <script>
+    const blacklist = [
+      {
+        bill: 10,
+        ranges: [
+          [67250001, 67700000],
+          [69050001, 69500000],
+          [69500001, 69950000],
+          [69950001, 70400000],
+          [70400001, 70850000],
+          [70850001, 71300000],
+          [76310012, 85139995],
+          [86400001, 86850000],
+          [90900001, 91350000],
+          [91800001, 92250000],
+        ]
+      },
+      {
+        bill: 20, ranges: [
+          [87280145, 91646549],
+          [96650001, 97100000],
+          [99800001, 100250000],
+          [100250001, 100700000],
+          [109250001, 109700000],
+          [110600001, 111050000],
+          [111050001, 111500000],
+          [111950001, 112400000],
+          [112400001, 112850000],
+          [112850001, 113300000],
+          [114200001, 114650000],
+          [114650001, 115100000],
+          [115100001, 115550000],
+          [118700001, 119150000],
+          [119150001, 119600000],
+          [120500001, 120950000]
+        ]
+      },
+      {
+        bill: 50, ranges: [
+          [77100001, 77550000],
+          [78000001, 78450000],
+          [78900001, 96350000],
+          [96350001, 96800000],
+          [96800001, 97250000],
+          [98150001, 98600000],
+          [104900001, 105350000],
+          [105350001, 105800000],
+          [106700001, 107150000],
+          [107600001, 107150000],
+          [108050001, 108500000],
+          [109400001, 109850000],
+        ]
+      },
+    ];
+
+    let selectedBillValue = 10;
+    const serialInput = document.getElementById('serial');
+    const result = document.getElementById('result');
+    const history = document.getElementById('history');
+    const rangesDiv = document.getElementById('ranges');
+
+    function renderRanges(highlightSerial) {
+      const entry = blacklist.find(e => e.bill === selectedBillValue);
+      if (!entry || entry.ranges.length === 0) {
+        rangesDiv.innerHTML = '<details><summary>Rangos Bs' + selectedBillValue + '</summary><p style="font-size:0.85rem;color:#999;">Sin rangos registrados.</p></details>';
+        return;
+      }
+      const open = highlightSerial ? ' open' : '';
+      let html = '<details' + open + '><summary>Rangos Bs' + entry.bill + '</summary><table><tr><th>Desde</th><th>Hasta</th></tr>';
+      for (const [lo, hi] of entry.ranges) {
+        const match = highlightSerial && highlightSerial >= pad9(lo) && highlightSerial <= pad9(hi);
+        html += '<tr' + (match ? ' class="highlight"' : '') + '><td>' + pad9(lo) + '</td><td>' + pad9(hi) + '</td></tr>';
+      }
+      html += '</table></details>';
+      rangesDiv.innerHTML = html;
+    }
+
+    function selectBill(el) {
+      document.querySelectorAll('.bill-card').forEach(c => c.classList.remove('selected'));
+      el.classList.add('selected');
+      selectedBillValue = parseInt(el.dataset.bill, 10);
+      renderRanges();
+    }
+
+    serialInput.addEventListener('input', () => {
+      serialInput.value = serialInput.value.replace(/\D/g, '').slice(0, 9);
+    });
+
+    serialInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') check();
+    });
+
+    function pad9(n) {
+      return String(n).padStart(9, '0');
+    }
+
+    const checked = new Set();
+
+    function addHistory(bill, serial, blocked) {
+      const key = `${bill}-${serial}`;
+      if (checked.has(key)) return;
+      checked.add(key);
+      const div = document.createElement('div');
+      div.className = 'entry ' + (blocked ? 'danger' : 'safe');
+      div.textContent = `Bs${bill}: ${serial} - ${blocked ? 'NO VALIDO' : 'VALIDO'}`;
+      if (blocked) {
+        div.dataset.bill = bill;
+        div.dataset.serial = serial;
+        div.addEventListener('click', () => {
+          const billCard = document.querySelector(`.bill-card[data-bill="${bill}"]`);
+          if (billCard) selectBill(billCard);
+          renderRanges(serial);
+        });
+      }
+      history.prepend(div);
+    }
+
+    function check() {
+      const val = serialInput.value;
+      if (val.length !== 9) {
+        result.style.display = 'block';
+        result.className = 'danger';
+        result.textContent = 'Ingrese exactamente 9 números.';
+        return;
+      }
+
+      const entry = blacklist.find(e => e.bill === selectedBillValue);
+
+      if (entry) {
+        for (const [lo, hi] of entry.ranges) {
+          if (val >= pad9(lo) && val <= pad9(hi)) {
+            result.style.display = 'block';
+            result.className = 'danger';
+            result.textContent = `NO VALIDO: Billete de ${entry.bill}`;
+            addHistory(entry.bill, val, true);
+            return;
+          }
+        }
+      }
+
+      result.style.display = 'block';
+      result.className = 'safe';
+      result.textContent = 'Válido';
+      addHistory(selectedBillValue, val, false);
+    }
+
+    renderRanges();
+  </script>
+</body>
+
+</html>
