@@ -31,6 +31,24 @@
       width: 100%;
       max-width: 400px;
       text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -500px;
+      right: 0;
+      bottom: 0;
+      background-image: var(--bill-bg);
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      opacity: 0.12;
+      pointer-events: none;
+      transition: background-image 0.3s;
     }
 
     .lang-switch {
@@ -284,7 +302,8 @@
       <div class="bill-card" data-bill="50" onclick="selectBill(this)">Bs 50</div>
     </div>
     <div class="inputs">
-      <input id="serial" type="text" inputmode="numeric" maxlength="9" placeholder="000000000" autocomplete="off" autofocus>
+      <input id="serial" type="text" inputmode="numeric" maxlength="9" placeholder="000000000" autocomplete="off"
+        autofocus>
       <input id="B" type="text" placeholder="B" autocomplete="off" disabled>
     </div>
     <div class="buttons">
@@ -295,17 +314,22 @@
     <div id="history"></div>
     <div style="display:flex;align-items:baseline;gap:0.5rem;">
       <div id="ranges" style="flex:1;"></div>
-      <a id="sourceLink" href="https://www.bcb.gob.bo/webdocs/files_noticias/28feb26%20CP%209%20BCB%20levanta%20inhabilitaci%C3%B3n%20Serie%20B.PDF" target="_blank" rel="noopener" style="font-size:0.75rem;color:#4a90d9;text-decoration:none;white-space:nowrap;">Fuente</a>
+      <a id="sourceLink"
+        href="https://www.bcb.gob.bo/webdocs/files_noticias/28feb26%20CP%209%20BCB%20levanta%20inhabilitaci%C3%B3n%20Serie%20B.PDF"
+        target="_blank" rel="noopener"
+        style="font-size:0.75rem;color:#4a90d9;text-decoration:none;white-space:nowrap;">Fuente</a>
     </div>
   </div>
 
   <div class="card-link">
     <span id="officialText">Verificador oficial, por si quieres sumar y restar</span>
     <br>
-    <a href="https://www.bcb.gob.bo/?q=content/verificador-de-n%C3%BAmero-de-serie" target="_blank" rel="noopener">bcb.gob.bo</a>
+    <a href="https://www.bcb.gob.bo/?q=content/verificador-de-n%C3%BAmero-de-serie" target="_blank"
+      rel="noopener">bcb.gob.bo</a>
   </div>
 
-  <a href="https://rodriwasabi.github.io/resume/" target="_blank" rel="noopener" style="font-size:0.7rem;color:#bbb;text-decoration:none;">@rodriwasabi</a>
+  <a href="https://rodriwasabi.github.io/resume/" target="_blank" rel="noopener"
+    style="font-size:0.7rem;color:#bbb;text-decoration:none;">@rodriwasabi</a>
 
   <script>
     const i18n = {
@@ -456,10 +480,17 @@
       rangesDiv.innerHTML = html;
     }
 
+    const cardEl = document.querySelector('.card');
+
+    function updateBillBg() {
+      cardEl.style.setProperty('--bill-bg', 'url(' + selectedBillValue + '.jpg)');
+    }
+
     function selectBill(el) {
       document.querySelectorAll('.bill-card').forEach(c => c.classList.remove('selected'));
       el.classList.add('selected');
       selectedBillValue = parseInt(el.dataset.bill, 10);
+      updateBillBg();
       renderRanges();
     }
 
@@ -534,6 +565,7 @@
       addHistory(selectedBillValue, val, false);
     }
 
+    updateBillBg();
     renderRanges();
   </script>
 </body>
