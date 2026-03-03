@@ -388,7 +388,7 @@
 
     const blacklist = [
       {
-        bill: 10,
+        bill: 50,
         ranges: [
           [67250001, 67700000],
           [69050001, 69500000],
@@ -423,7 +423,7 @@
         ]
       },
       {
-        bill: 50, ranges: [
+        bill: 10, ranges: [
           [77100001, 77550000],
           [78000001, 78450000],
           [78900001, 96350000],
@@ -501,6 +501,10 @@
 
     serialInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') check();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') otro();
     });
 
     function pad9(n) {
