@@ -293,7 +293,10 @@
     </div>
     <div id="result"></div>
     <div id="history"></div>
-    <div id="ranges"></div>
+    <div style="display:flex;align-items:baseline;gap:0.5rem;">
+      <div id="ranges" style="flex:1;"></div>
+      <a id="sourceLink" href="https://www.bcb.gob.bo/webdocs/files_noticias/28feb26%20CP%209%20BCB%20levanta%20inhabilitaci%C3%B3n%20Serie%20B.PDF" target="_blank" rel="noopener" style="font-size:0.75rem;color:#4a90d9;text-decoration:none;white-space:nowrap;">Fuente</a>
+    </div>
   </div>
 
   <div class="card-link">
@@ -320,6 +323,7 @@
         historyInvalid: 'NO VALIDO',
         historyValid: 'VALIDO',
         official: 'Verificador oficial, por si quieres sumar y restar',
+        source: 'Fuente',
       },
       pt: {
         title: 'Verificador de Cédulas',
@@ -335,6 +339,7 @@
         historyInvalid: 'INVÁLIDA',
         historyValid: 'VÁLIDA',
         official: 'Verificador oficial, caso queira somar e subtrair',
+        source: 'Fonte',
       },
       en: {
         title: 'Bill Checker',
@@ -350,6 +355,7 @@
         historyInvalid: 'INVALID',
         historyValid: 'VALID',
         official: 'Official checker, in case you want to add and subtract',
+        source: 'Source',
       },
     };
 
@@ -420,6 +426,7 @@
     const titleEl = document.getElementById('title');
 
     const officialText = document.getElementById('officialText');
+    const sourceLink = document.getElementById('sourceLink');
 
     function setLang(l) {
       lang = l;
@@ -428,6 +435,7 @@
       btnCheck.textContent = t('check');
       btnOtro.textContent = t('another');
       officialText.textContent = t('official');
+      sourceLink.textContent = t('source');
       result.style.display = 'none';
       renderRanges();
     }
