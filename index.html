@@ -97,8 +97,14 @@
       border-color: #4a90d9;
     }
 
-    button {
+    .buttons {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
       margin-top: 1rem;
+    }
+
+    button {
       padding: 0.6rem 2rem;
       font-size: 1rem;
       border: none;
@@ -108,8 +114,25 @@
       cursor: pointer;
     }
 
-    button:hover {
+    button:hover:not(:disabled) {
       background: #3a7bc8;
+    }
+
+    button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .btn-secondary {
+      background: none;
+      border: 1px solid #ccc;
+      color: #555;
+      font-size: 0.85rem;
+      padding: 0.4rem 1rem;
+    }
+
+    .btn-secondary:hover {
+      background: #f0f0f0;
     }
 
     #result {
@@ -204,11 +227,13 @@
       <div class="bill-card" data-bill="50" onclick="selectBill(this)">Bs 50</div>
     </div>
     <div class="inputs">
-      <input id="serial" type="text" inputmode="numeric" maxlength="9" placeholder="000000000" autocomplete="off">
+      <input id="serial" type="text" inputmode="numeric" maxlength="9" placeholder="000000000" autocomplete="off" autofocus>
       <input id="B" type="text" placeholder="B" autocomplete="off" disabled>
     </div>
-    <br>
-    <button onclick="check()">Verificar</button>
+    <div class="buttons">
+      <button id="btnCheck" onclick="check()" disabled>Verificar</button>
+      <button class="btn-secondary" onclick="otro()">Otro billete</button>
+    </div>
     <div id="result"></div>
     <div id="history"></div>
     <div id="ranges"></div>
@@ -298,8 +323,11 @@
       renderRanges();
     }
 
+    const btnCheck = document.getElementById('btnCheck');
+
     serialInput.addEventListener('input', () => {
       serialInput.value = serialInput.value.replace(/\D/g, '').slice(0, 9);
+      btnCheck.disabled = serialInput.value.length !== 9;
     });
 
     serialInput.addEventListener('keydown', (e) => {
@@ -329,6 +357,14 @@
         });
       }
       history.prepend(div);
+    }
+
+    function otro() {
+      serialInput.value = '';
+      btnCheck.disabled = true;
+      result.style.display = 'none';
+      renderRanges();
+      serialInput.focus();
     }
 
     function check() {
