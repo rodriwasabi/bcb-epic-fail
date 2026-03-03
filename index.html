@@ -15,10 +15,12 @@
     body {
       font-family: system-ui, sans-serif;
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
       background: #f5f5f5;
+      gap: 1rem;
     }
 
     .card {
@@ -29,6 +31,34 @@
       width: 100%;
       max-width: 400px;
       text-align: center;
+    }
+
+    .lang-switch {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.3rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .lang-btn {
+      background: none;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 0.15rem 0.4rem;
+      font-size: 0.75rem;
+      color: #888;
+      cursor: pointer;
+    }
+
+    .lang-btn:hover {
+      border-color: #4a90d9;
+      color: #4a90d9;
+    }
+
+    .lang-btn.active {
+      background: #4a90d9;
+      border-color: #4a90d9;
+      color: #fff;
     }
 
     h1 {
@@ -215,12 +245,39 @@
       background: #fce4e4;
       font-weight: 700;
     }
+
+    .card-link {
+      background: #fff;
+      border-radius: 12px;
+      padding: 1rem 2rem;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+      font-size: 0.85rem;
+      color: #555;
+    }
+
+    .card-link a {
+      color: #4a90d9;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .card-link a:hover {
+      text-decoration: underline;
+    }
   </style>
 </head>
 
 <body>
   <div class="card">
-    <h1>Verificador de Billetes</h1>
+    <div class="lang-switch">
+      <span class="lang-btn active" onclick="setLang('es')">ES</span>
+      <span class="lang-btn" onclick="setLang('pt')">PT</span>
+      <span class="lang-btn" onclick="setLang('en')">EN</span>
+    </div>
+    <h1 id="title">Verificador de Billetes</h1>
     <div class="bills">
       <div class="bill-card selected" data-bill="10" onclick="selectBill(this)">Bs 10</div>
       <div class="bill-card" data-bill="20" onclick="selectBill(this)">Bs 20</div>
@@ -232,14 +289,71 @@
     </div>
     <div class="buttons">
       <button id="btnCheck" onclick="check()" disabled>Verificar</button>
-      <button class="btn-secondary" onclick="otro()">Otro billete</button>
+      <button id="btnOtro" class="btn-secondary" onclick="otro()">Otro billete</button>
     </div>
     <div id="result"></div>
     <div id="history"></div>
     <div id="ranges"></div>
   </div>
 
+  <div class="card-link">
+    <span id="officialText">Verificador oficial, por si quieres sumar y restar</span>
+    <br>
+    <a href="https://www.bcb.gob.bo/?q=content/verificador-de-n%C3%BAmero-de-serie" target="_blank" rel="noopener">bcb.gob.bo</a>
+  </div>
+
   <script>
+    const i18n = {
+      es: {
+        title: 'Verificador de Billetes',
+        check: 'Verificar',
+        another: 'Otro billete',
+        enter9: 'Ingrese exactamente 9 números.',
+        invalid: 'NO VALIDO: Billete de',
+        valid: 'Válido',
+        noRanges: 'Sin rangos registrados.',
+        ranges: 'Rangos Bs',
+        from: 'Desde',
+        to: 'Hasta',
+        historyInvalid: 'NO VALIDO',
+        historyValid: 'VALIDO',
+        official: 'Verificador oficial, por si quieres sumar y restar',
+      },
+      pt: {
+        title: 'Verificador de Cédulas',
+        check: 'Verificar',
+        another: 'Outra cédula',
+        enter9: 'Digite exatamente 9 números.',
+        invalid: 'INVÁLIDA: Cédula de',
+        valid: 'Válida',
+        noRanges: 'Sem faixas registradas.',
+        ranges: 'Faixas Bs',
+        from: 'De',
+        to: 'Até',
+        historyInvalid: 'INVÁLIDA',
+        historyValid: 'VÁLIDA',
+        official: 'Verificador oficial, caso queira somar e subtrair',
+      },
+      en: {
+        title: 'Bill Checker',
+        check: 'Check',
+        another: 'Next bill',
+        enter9: 'Enter exactly 9 digits.',
+        invalid: 'INVALID: Bill of',
+        valid: 'Valid',
+        noRanges: 'No ranges registered.',
+        ranges: 'Ranges Bs',
+        from: 'From',
+        to: 'To',
+        historyInvalid: 'INVALID',
+        historyValid: 'VALID',
+        official: 'Official checker, in case you want to add and subtract',
+      },
+    };
+
+    let lang = 'es';
+    function t(key) { return i18n[lang][key]; }
+
     const blacklist = [
       {
         bill: 10,
@@ -297,17 +411,33 @@
     let selectedBillValue = 10;
     const serialInput = document.getElementById('serial');
     const result = document.getElementById('result');
-    const history = document.getElementById('history');
+    const historyDiv = document.getElementById('history');
     const rangesDiv = document.getElementById('ranges');
+    const btnCheck = document.getElementById('btnCheck');
+    const btnOtro = document.getElementById('btnOtro');
+    const titleEl = document.getElementById('title');
+
+    const officialText = document.getElementById('officialText');
+
+    function setLang(l) {
+      lang = l;
+      document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.textContent === l.toUpperCase()));
+      titleEl.textContent = t('title');
+      btnCheck.textContent = t('check');
+      btnOtro.textContent = t('another');
+      officialText.textContent = t('official');
+      result.style.display = 'none';
+      renderRanges();
+    }
 
     function renderRanges(highlightSerial) {
       const entry = blacklist.find(e => e.bill === selectedBillValue);
       if (!entry || entry.ranges.length === 0) {
-        rangesDiv.innerHTML = '<details><summary>Rangos Bs' + selectedBillValue + '</summary><p style="font-size:0.85rem;color:#999;">Sin rangos registrados.</p></details>';
+        rangesDiv.innerHTML = '<details><summary>' + t('ranges') + selectedBillValue + '</summary><p style="font-size:0.85rem;color:#999;">' + t('noRanges') + '</p></details>';
         return;
       }
       const open = highlightSerial ? ' open' : '';
-      let html = '<details' + open + '><summary>Rangos Bs' + entry.bill + '</summary><table><tr><th>Desde</th><th>Hasta</th></tr>';
+      let html = '<details' + open + '><summary>' + t('ranges') + entry.bill + '</summary><table><tr><th>' + t('from') + '</th><th>' + t('to') + '</th></tr>';
       for (const [lo, hi] of entry.ranges) {
         const match = highlightSerial && highlightSerial >= pad9(lo) && highlightSerial <= pad9(hi);
         html += '<tr' + (match ? ' class="highlight"' : '') + '><td>' + pad9(lo) + '</td><td>' + pad9(hi) + '</td></tr>';
@@ -323,8 +453,6 @@
       renderRanges();
     }
 
-    const btnCheck = document.getElementById('btnCheck');
-
     serialInput.addEventListener('input', () => {
       serialInput.value = serialInput.value.replace(/\D/g, '').slice(0, 9);
       btnCheck.disabled = serialInput.value.length !== 9;
@@ -338,15 +466,15 @@
       return String(n).padStart(9, '0');
     }
 
-    const checked = new Set();
+    const checkedSet = new Set();
 
     function addHistory(bill, serial, blocked) {
       const key = `${bill}-${serial}`;
-      if (checked.has(key)) return;
-      checked.add(key);
+      if (checkedSet.has(key)) return;
+      checkedSet.add(key);
       const div = document.createElement('div');
       div.className = 'entry ' + (blocked ? 'danger' : 'safe');
-      div.textContent = `Bs${bill}: ${serial} - ${blocked ? 'NO VALIDO' : 'VALIDO'}`;
+      div.textContent = `Bs${bill}: ${serial} - ${blocked ? t('historyInvalid') : t('historyValid')}`;
       if (blocked) {
         div.dataset.bill = bill;
         div.dataset.serial = serial;
@@ -356,7 +484,7 @@
           renderRanges(serial);
         });
       }
-      history.prepend(div);
+      historyDiv.prepend(div);
     }
 
     function otro() {
@@ -372,7 +500,7 @@
       if (val.length !== 9) {
         result.style.display = 'block';
         result.className = 'danger';
-        result.textContent = 'Ingrese exactamente 9 números.';
+        result.textContent = t('enter9');
         return;
       }
 
@@ -383,7 +511,7 @@
           if (val >= pad9(lo) && val <= pad9(hi)) {
             result.style.display = 'block';
             result.className = 'danger';
-            result.textContent = `NO VALIDO: Billete de ${entry.bill}`;
+            result.textContent = `${t('invalid')} ${entry.bill}`;
             addHistory(entry.bill, val, true);
             return;
           }
@@ -392,7 +520,7 @@
 
       result.style.display = 'block';
       result.className = 'safe';
-      result.textContent = 'Válido';
+      result.textContent = t('valid');
       addHistory(selectedBillValue, val, false);
     }
 
